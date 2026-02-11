@@ -1,0 +1,23 @@
+@font-face {
+    font-family: 'Montserrat';
+    src: url('./assets/fonts/montserrat-800.woff2') format('woff2');
+    font-weight: 800;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Montserrat';
+    src: url('./assets/fonts/montserrat-900.woff2') format('woff2');
+    font-weight: 900;
+    font-style: normal;
+}
+
+#app {
+    width: 100vw;
+    height: 100vh;
+    background-size: cover;
+    background-position: center;
+    font-family: 'Montserrat', sans-serif;
+    overflow: hidden;
+    position: relative;
+}

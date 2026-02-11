@@ -1,0 +1,196 @@
+.sprite {
+    display: inline-block;
+    overflow: hidden;
+    background-image: url('./images/spritesheet.webp');
+    background-repeat: no-repeat;
+}
+
+.text-background-png {
+    background-position: -2px -2px;
+    width: 1151px;
+    height: 656px;
+    margin-left: 0px;
+    margin-top: 5px;
+}
+.win-background-png {
+    background-position: -1157px -2px;
+    width: 876px;
+    height: 557px;
+    margin-left: 8px;
+    margin-top: 5px;
+}
+.install-button-png {
+    background-position: -1157px -563px;
+    width: 810px;
+    height: 342px;
+    margin-left: 14px;
+    margin-top: 14px;
+}
+
+.sensational-text-png {
+    background-position: -2px -909px;
+    width: 194px;
+    height: 1020px;
+    transform: rotate(-90deg);
+    transform-origin: 510px 97px;
+    margin-left: 3px;
+    margin-top: 0px;
+}
+
+.scatter-png {
+    background-position: -2px -662px;
+    width: 256px;
+    height: 241px;
+    margin-left: 39px;
+    margin-top: 3px;
+}
+
+.zeus-png {
+    background-position: -200px -907px;
+    width: 942px;
+    height: 518px;
+    transform: rotate(-90deg);
+    transform-origin: 259px 471px;
+    margin-left: 5px;
+    margin-top: 4px;
+}
+
+.crown-png {
+    background-position: -262px -662px;
+    width: 220px;
+    height: 240px;
+    transform: rotate(-90deg);
+    transform-origin: 120px 110px;
+    margin-left: 1px;
+    margin-top: 0px;
+}
+
+.hourglass-png {
+    background-position: -486px -662px;
+    width: 217px;
+    height: 235px;
+    margin-left: 1px;
+    margin-top: 1px;
+}
+.ring-png {
+    background-position: -707px -662px;
+    width: 209px;
+    height: 223px;
+    margin-left: 0px;
+    margin-top: 0px;
+}
+
+.cup-png {
+    background-position: -920px -662px;
+    width: 216px;
+    height: 208px;
+    transform: rotate(-90deg);
+    transform-origin: 104px 108px;
+    margin-left: 0px;
+    margin-top: 2px;
+}
+
+.logo-png {
+    background-position: -200px -1429px;
+    width: 266px;
+    height: 510px;
+    transform: rotate(-90deg);
+    transform-origin: 255px 133px;
+    margin-left: 1px;
+    margin-top: 53px;
+}
+
+.nice-text-png {
+    background-position: -1146px -909px;
+    width: 779px;
+    height: 281px;
+    margin-left: 3px;
+    margin-top: 24px;
+}
+
+.stat-background-png {
+    background-position: -1929px -909px;
+    width: 116px;
+    height: 704px;
+    transform: rotate(-90deg);
+    transform-origin: 352px 58px;
+    margin-left: 0px;
+    margin-top: 0px;
+}
+
+.coin-png {
+    background-position: -470px -1617px;
+    width: 334px;
+    height: 362px;
+    margin-left: 11px;
+    margin-top: 22px;
+}
+
+.amethyst-png {
+    background-position: -470px -1429px;
+    width: 211px;
+    height: 183px;
+    transform: rotate(-90deg);
+    transform-origin: 91.5px 105.5px;
+    margin-left: 0px;
+    margin-top: 2px;
+}
+
+.start-button-png {
+    background-position: -685px -1429px;
+    width: 620px;
+    height: 178px;
+    margin-left: 3px;
+    margin-top: 0px;
+}
+.ruby-png {
+    background-position: -1146px -1194px;
+    width: 200px;
+    height: 206px;
+    margin-left: 0px;
+    margin-top: 1px;
+}
+
+.combo-border-png {
+    background-position: -808px -1617px;
+    width: 331px;
+    height: 358px;
+    transform: rotate(-90deg);
+    transform-origin: 179px 165.5px;
+    margin-left: 2px;
+    margin-top: 0px;
+}
+
+.spin-button-png {
+    background-position: -1350px -1194px;
+    width: 494px;
+    height: 459px;
+    margin-left: 3px;
+    margin-top: 4px;
+}
+.topaz-png {
+    background-position: -1143px -1611px;
+    width: 203px;
+    height: 185px;
+    margin-left: 0px;
+    margin-top: 0px;
+}
+.emerald-png {
+    background-position: -1848px -1617px;
+    width: 189px;
+    height: 201px;
+    margin-left: 0px;
+    margin-top: 1px;
+}
+.sapphire-png {
+    background-position: -1848px -1822px;
+    width: 187px;
+    height: 206px;
+    margin-left: 1px;
+    margin-top: 1px;
+}
+.banknote-png {
+    background-position: -1143px -1822px;
+    width: 291px;
+    height: 154px;
+}
