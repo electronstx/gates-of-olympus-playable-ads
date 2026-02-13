@@ -1,0 +1,27 @@
+import type { SpriteData } from '../types'
+
+export const ASSET_MAP: Record<string, SpriteData> = {
+    'text-background': { x: 2, y: 2, w: 1151, h: 656 },
+    'win-background': { x: 1157, y: 2, w: 876, h: 557 },
+    'install-button': { x: 1157, y: 563, w: 810, h: 342 },
+    'sensational-text': { x: 2, y: 909, w: 194, h: 1020, rotated: true },
+    'scatter': { x: 2, y: 662, w: 256, h: 241 },
+    'zeus': { x: 200, y: 907, w: 942, h: 518 },
+    'crown': { x: 262, y: 662, w: 220, h: 240, rotated: true },
+    'hourglass': { x: 486, y: 662, w: 217, h: 235 },
+    'ring': { x: 707, y: 662, w: 209, h: 223 },
+    'cup': { x: 920, y: 662, w: 216, h: 208, rotated: true },
+    'logo': { x: 200, y: 1429, w: 266, h: 510, rotated: true },
+    'nice-text': { x: 1146, y: 909, w: 779, h: 281 },
+    'stat-background': { x: 1929, y: 909, w: 116, h: 704, rotated: true },
+    'coin': { x: 470, y: 1617, w: 334, h: 362 },
+    'amethyst': { x: 470, y: 1429, w: 211, h: 183, rotated: true },
+    'start-button': { x: 685, y: 1429, w: 620, h: 178 },
+    'ruby': { x: 1146, y: 1194, w: 200, h: 206 },
+    'combo-border': { x: 808, y: 1617, w: 331, h: 358, rotated: true },
+    'spin-button': { x: 1350, y: 1194, w: 494, h: 459 },
+    'topaz': { x: 1143, y: 1611, w: 203, h: 185 },
+    'emerald': { x: 1848, y: 1617, w: 189, h: 201 },
+    'sapphire': { x: 1848, y: 1822, w: 187, h: 206 },
+    'banknote': { x: 1143, y: 1822, w: 291, h: 154 },
+}
