@@ -8,7 +8,7 @@ export const GAME_STATE = {
     START: 'START',
     IDLE: 'IDLE',
     SPIN: 'SPIN',
-    WIN: 'WINNING',
+    WIN: 'WIN',
     END: 'END',
 } as const
 

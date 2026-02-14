@@ -32,8 +32,8 @@ export class Game {
         this.#audioManager = new AudioManager()
         this.#model = new GameModel(this.#eventEmitter)
         this.#scene = new Scene()
-        this.#reels = new Reels(this.#renderer)
-        this.#statPanel = new StatPanel(this.#renderer)
+        this.#reels = new Reels(this.#renderer, this.#model)
+        this.#statPanel = new StatPanel(this.#renderer, this.#model)
         this.#button = new Button(this.#renderer, this.#eventEmitter, this.#model.state)
 
         this.#ticker = new Ticker((dt) => this.#update(dt))
@@ -57,12 +57,14 @@ export class Game {
         this.#reels.init()
 
         window.addEventListener('resize', () => this.#handleResize())
-        this.#renderer.canvas.addEventListener('click', (e) => this.#handleClick(e))
+        this.#renderer.canvas?.addEventListener('click', (e) => this.#handleClick(e))
 
         this.#ticker.start()
     }
 
     #handleClick(e: MouseEvent) {
+        if (!this.#renderer.canvas) return
+
         const rect = this.#renderer.canvas.getBoundingClientRect()
         const clickX = e.clientX - rect.left
         const clickY = e.clientY - rect.top
@@ -71,7 +73,7 @@ export class Game {
 
         if (this.#button.isClicked(clickX, clickY)) {
             if (this.#model.spin()) {
-                console.log('Spin started via Model')
+                this.#reels.startSpin()
             }
         }
     }

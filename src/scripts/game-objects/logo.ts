@@ -3,7 +3,7 @@ import { Renderer } from '../core/renderer'
 import type { GameObject } from '../types'
 
 export class Logo implements GameObject {
-    #renderer: Renderer
+    #renderer: Renderer | null
 
     constructor(renderer: Renderer) {
         this.#renderer = renderer
@@ -18,10 +18,12 @@ export class Logo implements GameObject {
         const x = window.innerWidth * 0.3
         const y = window.innerHeight * 0.1
 
-        this.#renderer.drawSprite('logo', x, y, dynamicScale, -Math.PI / 2)
+        this.#renderer?.drawSprite('logo', x, y, dynamicScale, -Math.PI / 2)
     }
 
-    update(dt: number): void {}
+    update(_dt: number): void {}
 
-    destroy(): void {}
+    destroy(): void {
+        this.#renderer = null
+    }
 }

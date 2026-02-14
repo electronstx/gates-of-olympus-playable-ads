@@ -4,16 +4,16 @@ import { GAME_STATE, type GameObject, type GameState } from '../types'
 import type { EventEmitter } from '../core/event-emitter'
 
 export class Button implements GameObject {
-    #renderer: Renderer
-    #eventEmitter: EventEmitter
+    #renderer: Renderer | null
+    #eventEmitter: EventEmitter | null
     #textCanvas: HTMLCanvasElement | null = null
     #currentTexture: string = 'start-button'
     #state: GameState
-    #x = 0
-    #y = 0
-    #pulseAngle = 0
-    #baseScale = 0
-    #currentScale = 0
+    #x: number = 0
+    #y: number = 0
+    #pulseAngle: number = 0
+    #baseScale: number = 0
+    #currentScale: number = 0
 
     constructor(renderer: Renderer, eventEmitter: EventEmitter, state: GameState) {
         this.#renderer = renderer
@@ -56,6 +56,8 @@ export class Button implements GameObject {
     }
 
     draw() {
+        if (!this.#renderer || !this.#renderer.ctx) return
+
         if (!this.#textCanvas) {
             this.#prepareText()
         }
@@ -91,7 +93,10 @@ export class Button implements GameObject {
             this.#textCanvas = null
         }
 
-        this.#eventEmitter.off('STATE_CHANGE', this.#handleStateChange)
+        this.#renderer = null
+
+        this.#eventEmitter?.off('STATE_CHANGE', this.#handleStateChange)
+        this.#eventEmitter = null
     }
 
     isClicked(x: number, y: number): boolean {

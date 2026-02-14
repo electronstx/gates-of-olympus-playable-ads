@@ -2,17 +2,19 @@ import { Renderer } from '../core/renderer'
 import type { GameObject } from '../types'
 
 export class ReelsBg implements GameObject {
-    #renderer: Renderer
+    #renderer: Renderer | null
 
     constructor(renderer: Renderer) {
         this.#renderer = renderer
     }
 
     draw() {
-        this.#renderer.drawReelsBackground()
+        this.#renderer?.drawReelsBackground()
     }
 
     update() {}
 
-    destroy() {}
+    destroy() {
+        this.#renderer = null
+    }
 }

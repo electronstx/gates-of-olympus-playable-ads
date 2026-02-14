@@ -1,19 +1,20 @@
 import { ASSET_MAP } from '../config/asset-map'
+import type { GameModel } from '../core/game-model'
 import { Renderer } from '../core/renderer'
 import type { GameObject } from '../types'
 
 export class StatPanel implements GameObject {
-    #renderer: Renderer
+    #renderer: Renderer | null
+    #model: GameModel | null
 
-    #freeSpins = 5
-    #balance = 0
-    #bet = 10
-
-    constructor(renderer: Renderer) {
+    constructor(renderer: Renderer, model: GameModel) {
         this.#renderer = renderer
+        this.#model = model
     }
 
     draw(): void {
+        if (!this.#renderer || !this.#renderer.ctx) return
+
         const { reels, symbolSize } = this.#renderer.layout
         const ctx = this.#renderer.ctx
 
@@ -36,7 +37,7 @@ export class StatPanel implements GameObject {
 
         ctx.textAlign = 'left'
         const fsLabel = 'FREE SPINS: '
-        const fsValue = `${this.#freeSpins}`
+        const fsValue = `${this.#model?.freeSpins}`
         const fsX = x - spacing
 
         ctx.fillStyle = labelColor
@@ -49,7 +50,7 @@ export class StatPanel implements GameObject {
 
         ctx.textAlign = 'right'
         const betLabel = 'BET: '
-        const betValue = `${this.#bet}€`
+        const betValue = `${this.#model?.bet}€`
         const betX = x + spacing
 
         ctx.fillStyle = valueColor
@@ -62,7 +63,7 @@ export class StatPanel implements GameObject {
         const midPointX = endOfLeft + (startOfRight - endOfLeft) / 2
 
         const balLabel = '€: '
-        const balValue = `${this.#balance}€`
+        const balValue = `${this.#model?.win}€`
         const totalBalWidth = ctx.measureText(balLabel + balValue).width
 
         const currentBalX = midPointX - totalBalWidth / 2
@@ -74,7 +75,10 @@ export class StatPanel implements GameObject {
         ctx.fillText(balValue, currentBalX + ctx.measureText(balLabel).width, y)
     }
 
-    update(dt: number): void {}
+    update(_dt: number): void {}
 
-    destroy(): void {}
+    destroy(): void {
+        this.#renderer = null
+        this.#model = null
+    }
 }

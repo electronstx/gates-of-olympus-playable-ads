@@ -4,11 +4,11 @@ import reelsBgUrl from '../../assets/images/reels-background.webp'
 import { ASSET_MAP } from '../config/asset-map'
 
 export class Renderer {
-    canvas: HTMLCanvasElement
-    ctx: CanvasRenderingContext2D
-    #sheet: HTMLImageElement = new Image()
-    #bg: HTMLImageElement = new Image()
-    #reelsBg: HTMLImageElement = new Image()
+    canvas: HTMLCanvasElement | null
+    ctx: CanvasRenderingContext2D | null
+    #sheet: HTMLImageElement | null = new Image()
+    #bg: HTMLImageElement | null = new Image()
+    #reelsBg: HTMLImageElement | null = new Image()
     isReady = false
     layout = {
         bg: { w: 0, h: 0 },
@@ -32,6 +32,8 @@ export class Renderer {
                 img.src = url
             })
 
+        if (!this.#sheet || !this.#bg || !this.#reelsBg) return
+
         await Promise.all([
             loadImg(this.#sheet, spritesheetUrl),
             loadImg(this.#bg, bgMainUrl),
@@ -40,10 +42,16 @@ export class Renderer {
 
         this.isReady = true
         this.#resize()
-        window.addEventListener('resize', () => this.#resize())
+        window.addEventListener('resize', this.#handleResize)
+    }
+
+    #handleResize = () => {
+        this.#resize()
     }
 
     #resize() {
+        if (!this.canvas || !this.ctx || !this.#reelsBg) return
+
         const dpr = window.devicePixelRatio || 1
         const w = window.innerWidth
         const h = window.innerHeight
@@ -93,24 +101,26 @@ export class Renderer {
     }
 
     clear() {
+        if (!this.ctx || !this.canvas) return
+
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
     }
 
     drawBackground() {
-        if (!this.isReady) return
+        if (!this.ctx || !this.isReady || !this.#bg) return
 
         this.ctx.drawImage(this.#bg, 0, 0, this.layout.bg.w, this.layout.bg.h)
     }
 
     drawReelsBackground() {
-        if (!this.isReady) return
+        if (!this.ctx || !this.isReady || !this.#reelsBg) return
 
         const { x, y, w, h } = this.layout.reels
         this.ctx.drawImage(this.#reelsBg, x, y, w, h)
     }
 
     drawSprite(name: keyof typeof ASSET_MAP, x: number, y: number, scale = 1, rotation = 0) {
-        if (!this.#sheet) return
+        if (!this.ctx || !this.#sheet || !this.isReady) return
 
         const data = ASSET_MAP[name]
 
@@ -134,5 +144,22 @@ export class Renderer {
             drawH
         )
         this.ctx.restore()
+    }
+
+    destroy(): void {
+        this.isReady = false
+
+        window.removeEventListener('resize', this.#handleResize)
+
+        if (this.#sheet) this.#sheet.src = ''
+        if (this.#bg) this.#bg.src = ''
+        if (this.#reelsBg) this.#reelsBg.src = ''
+
+        this.#sheet = null
+        this.#bg = null
+        this.#reelsBg = null
+
+        this.ctx = null
+        this.canvas = null
     }
 }

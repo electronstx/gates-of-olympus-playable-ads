@@ -3,10 +3,10 @@ import { Renderer } from '../core/renderer'
 import type { GameObject } from '../types'
 
 export class Zeus implements GameObject {
-    #renderer: Renderer
-    #angle = 0
-    #speed = 2
-    #amplitude = 7
+    #renderer: Renderer | null
+    #angle: number = 0
+    #speed: number = 2
+    #amplitude: number = 7
 
     constructor(renderer: Renderer) {
         this.#renderer = renderer
@@ -21,12 +21,14 @@ export class Zeus implements GameObject {
         const x = window.innerWidth * 0.75
         const y = window.innerHeight * 0.25 + Math.sin(this.#angle) * this.#amplitude
 
-        this.#renderer.drawSprite('zeus', x, y, dynamicScale, -Math.PI / 2)
+        this.#renderer?.drawSprite('zeus', x, y, dynamicScale, -Math.PI / 2)
     }
 
     update(dt: number) {
         this.#angle += this.#speed * dt
     }
 
-    destroy(): void {}
+    destroy(): void {
+        this.#renderer = null
+    }
 }
