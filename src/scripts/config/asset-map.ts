@@ -23,5 +23,5 @@ export const ASSET_MAP: Record<string, SpriteData> = {
     'topaz': { x: 1143, y: 1611, w: 203, h: 185 },
     'emerald': { x: 1848, y: 1617, w: 189, h: 201 },
     'sapphire': { x: 1848, y: 1822, w: 187, h: 206 },
-    'banknote': { x: 1143, y: 1822, w: 291, h: 154 },
+    'banknote': { x: 1143, y: 1822, w: 291, h: 154, rotated: true },
 }

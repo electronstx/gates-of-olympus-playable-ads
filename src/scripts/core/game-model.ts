@@ -54,7 +54,9 @@ export class GameModel {
     }
 
     spin(): boolean {
-        if (this.#state === GAME_STATE.SPIN) return false
+        if (this.#state !== GAME_STATE.IDLE && this.#state !== GAME_STATE.START) {
+            return false
+        }
 
         if (this.#freeSpins > 0) {
             this.#freeSpins -= 1

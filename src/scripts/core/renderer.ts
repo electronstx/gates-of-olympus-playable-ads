@@ -119,15 +119,24 @@ export class Renderer {
         this.ctx.drawImage(this.#reelsBg, x, y, w, h)
     }
 
-    drawSprite(name: keyof typeof ASSET_MAP, x: number, y: number, scale = 1, rotation = 0) {
+    drawSprite(
+        name: keyof typeof ASSET_MAP,
+        x: number,
+        y: number,
+        scaleX = 1,
+        rotation = 0,
+        scaleY?: number
+    ) {
         if (!this.ctx || !this.#sheet || !this.isReady) return
 
         const data = ASSET_MAP[name]
 
+        const sY = scaleY !== undefined ? scaleY : scaleX
+
         this.ctx.save()
         this.ctx.translate(x, y)
         this.ctx.rotate(rotation)
-        this.ctx.scale(scale, scale)
+        this.ctx.scale(scaleX, sY)
 
         const drawW = data.w
         const drawH = data.h

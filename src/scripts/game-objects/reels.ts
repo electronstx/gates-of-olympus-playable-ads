@@ -126,13 +126,9 @@ export class Reels implements GameObject {
         if (!renderer || !model) return
 
         const scenario = GAME_CONFIG.SPIN_SCENARIOS[this.#activeScenarioIndex]
-        const getNextState = () =>
-            model.currentSpinIndex >= GAME_CONFIG.SPIN_SCENARIOS.length
-                ? GAME_STATE.END
-                : GAME_STATE.IDLE
 
         if (!scenario?.winCombo) {
-            model.state = getNextState()
+            model.state = GAME_STATE.IDLE
             return
         }
 
@@ -153,9 +149,14 @@ export class Reels implements GameObject {
         )
 
         window.setTimeout(() => {
+            if (model.currentSpinIndex === 3) {
+                model.state = GAME_STATE.END
+                return
+            }
+
             this.#showCombo = false
             this.#winningPositions = []
-            model.state = getNextState()
+            model.state = GAME_STATE.IDLE
         }, 2500)
     }
 

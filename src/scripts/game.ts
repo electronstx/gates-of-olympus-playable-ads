@@ -11,6 +11,7 @@ import { Background } from './game-objects/background'
 import { EventEmitter } from './core/event-emitter'
 import { StatPanel } from './game-objects/stat-panel'
 import { GameModel } from './core/game-model'
+import { WinPopup } from './game-objects/win-popup'
 
 export class Game {
     #scene: Scene
@@ -23,6 +24,7 @@ export class Game {
     #reels: Reels
     #button: Button
     #statPanel: StatPanel
+    #winPopup: WinPopup
 
     #isGameStarted = false
 
@@ -35,6 +37,7 @@ export class Game {
         this.#reels = new Reels(this.#renderer, this.#model)
         this.#statPanel = new StatPanel(this.#renderer, this.#model)
         this.#button = new Button(this.#renderer, this.#eventEmitter, this.#model.state)
+        this.#winPopup = new WinPopup(this.#renderer, this.#model)
 
         this.#ticker = new Ticker((dt) => this.#update(dt))
 
@@ -53,6 +56,7 @@ export class Game {
             .add(this.#reels)
             .add(this.#statPanel)
             .add(this.#button)
+            .add(this.#winPopup)
 
         this.#reels.init()
 
@@ -71,6 +75,11 @@ export class Game {
 
         this.#handleFirstClick()
 
+        if (this.#winPopup.isInstallClicked(clickY)) {
+            this.#redirectToStore()
+            return
+        }
+
         if (this.#button.isClicked(clickX, clickY)) {
             if (this.#model.spin()) {
                 this.#reels.startSpin()
@@ -82,6 +91,15 @@ export class Game {
         if (!this.#isGameStarted) {
             this.#isGameStarted = true
             this.#audioManager.playMusic()
+        }
+    }
+
+    #redirectToStore() {
+        console.log('Redirecting to Store...')
+        if (typeof (window as any).fbPlayableAd !== 'undefined') {
+            ;(window as any).fbPlayableAd.onCTAClick()
+        } else {
+            window.open('', '_blank')
         }
     }
 
