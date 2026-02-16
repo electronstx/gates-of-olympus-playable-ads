@@ -40,7 +40,7 @@
 
 ## 📁 Структура проекта
 
-````text
+```text
 src/
 ├── assets/          # Исходные изображения (WebP) и аудио (MP3)
 ├── scripts/
@@ -48,15 +48,17 @@ src/
 │   ├── core/        # Ядро: Renderer, Ticker, Scene, Audio
 │   └── game-objects/    # Игровые объекты: Reels, Symbol, Zeus, WinPopup, Coin и т.д.
 └── main.ts      # Точка входа и инициализация игры
+```
 
 ---
 
 ## 🚀 Запуск и Сборка
 
 **Установка зависимостей:**
+
 ```bash
 pnpm install
-````
+```
 
 **Запуск режима разработки (с Hot Reload):**
 
