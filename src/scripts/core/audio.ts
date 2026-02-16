@@ -1,43 +1,90 @@
-import musicUrl from '../../assets/audio/background.mp3'
+import { ASSETS_AUDIO } from '../config/assets'
 
 export class AudioManager {
     #music: HTMLAudioElement | null = null
-    #activeSound: Set<HTMLAudioElement> = new Set()
+    #soundCache: Map<string, HTMLAudioElement> = new Map()
+    #activeSounds: Set<HTMLAudioElement> = new Set()
 
-    constructor() {
-        this.#music = new Audio(musicUrl)
+    constructor() {}
+
+    async init(): Promise<void> {
+        this.#music = new Audio(ASSETS_AUDIO.BG)
         this.#music.loop = true
         this.#music.volume = 0.4
+
+        const loadPromises = [
+            ASSETS_AUDIO.BIG_WIN,
+            ASSETS_AUDIO.COMBO,
+            ASSETS_AUDIO.SPIN,
+            ASSETS_AUDIO.WIN,
+        ].map((url) => this.#preload(url))
+
+        await Promise.all(loadPromises)
     }
 
-    playMusic() {
-        this.#music?.play().catch(() => {
-            console.log('Waiting for click to start music')
+    #preload(url: string): Promise<void> {
+        return new Promise((resolve) => {
+            if (this.#soundCache.has(url)) return resolve()
+
+            const audio = new Audio(url)
+            audio.oncanplaythrough = () => resolve()
+            audio.onerror = () => resolve()
+            audio.load()
+            this.#soundCache.set(url, audio)
         })
+    }
+
+    async playMusic() {
+        if (!this.#music) return
+        try {
+            await this.#music.play()
+        } catch {
+            console.warn('Audio autoplay blocked or failed')
+        }
     }
 
     playSound(url: string) {
-        const sound = new Audio(url)
-        sound.volume = 0.6
-        this.#activeSound.add(sound)
+        const original = this.#soundCache.get(url)
 
-        sound.onended = () => this.#activeSound.delete(sound)
-        sound.play()
+        if (!original) return
+
+        const sound = original.cloneNode() as HTMLAudioElement
+        sound.volume = 0.2
+
+        this.#activeSounds.add(sound)
+
+        sound.addEventListener(
+            'ended',
+            () => {
+                this.#cleanupSound(sound)
+            },
+            { once: true }
+        )
+
+        sound.play().catch(() => this.#cleanupSound(sound))
     }
 
-    destroy(): void {
+    #cleanupSound(sound: HTMLAudioElement) {
+        this.#activeSounds.delete(sound)
+        sound.pause()
+        sound.src = ''
+        sound.load()
+    }
+
+    destroy() {
         if (this.#music) {
             this.#music.pause()
             this.#music.src = ''
-            this.#music.load()
             this.#music = null
         }
 
-        this.#activeSound.forEach((sound) => {
-            sound.pause()
-            sound.src = ''
-            sound.load()
+        this.#activeSounds.forEach((s) => this.#cleanupSound(s))
+        this.#activeSounds.clear()
+
+        this.#soundCache.forEach((s) => {
+            s.src = ''
+            s.load()
         })
-        this.#activeSound.clear()
+        this.#soundCache.clear()
     }
 }

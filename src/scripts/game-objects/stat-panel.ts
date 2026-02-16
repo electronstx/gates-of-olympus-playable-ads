@@ -1,4 +1,4 @@
-import { ASSET_MAP } from '../config/asset-map'
+import { ASSET_MAP } from '../config/assets'
 import type { GameModel } from '../core/game-model'
 import { Renderer } from '../core/renderer'
 import type { GameObject } from '../types'
@@ -7,77 +7,114 @@ export class StatPanel implements GameObject {
     #renderer: Renderer | null
     #model: GameModel | null
 
+    #geo = {
+        x: 0,
+        y: 0,
+        bgScale: 0,
+        spacing: 0,
+        fsX: 0,
+        betX: 0,
+        fontSize: 0,
+        fontStr: '',
+    }
+
+    #metrics = {
+        lastFont: '',
+        fsLabelW: 0,
+        betLabelW: 0,
+        balLabelW: 0,
+    }
+
     constructor(renderer: Renderer, model: GameModel) {
         this.#renderer = renderer
         this.#model = model
     }
 
-    draw(): void {
-        if (!this.#renderer || !this.#renderer.ctx) return
+    updatePosition() {
+        const renderer = this.#renderer
+        if (!renderer) return
+        const { reels, symbolSize } = renderer.layout
 
-        const { reels, symbolSize } = this.#renderer.layout
-        const ctx = this.#renderer.ctx
+        const winW = window.innerWidth
+        const winH = window.innerHeight
 
-        const x = window.innerWidth / 2
-        const y = reels.y + reels.h + (window.innerHeight / 2) * 0.1
+        this.#geo.x = winW / 2
+        this.#geo.y = reels.y + reels.h + (winH / 2) * 0.1
 
         const bgData = ASSET_MAP['stat-background']
-        const bgScale = (window.innerWidth * 0.9) / bgData.h
+        this.#geo.bgScale = (winW * 0.9) / bgData.h
 
-        this.#renderer.drawSprite('stat-background', x, y, bgScale, -Math.PI / 2)
+        this.#geo.fontSize = Math.floor(symbolSize * 0.33)
+        this.#geo.fontStr = `800 ${this.#geo.fontSize}px Montserrat`
 
-        const fontSize = Math.floor(symbolSize * 0.33)
-        ctx.font = `800 ${fontSize}px Montserrat`
+        this.#geo.spacing = (winW * 1.2) / 3
+        this.#geo.fsX = this.#geo.x - this.#geo.spacing
+        this.#geo.betX = this.#geo.x + this.#geo.spacing
+
+        this.#metrics.lastFont = ''
+    }
+
+    draw() {
+        const renderer = this.#renderer
+        const model = this.#model
+        if (!renderer?.ctx || !model) return
+        const ctx = renderer.ctx
+        const g = this.#geo
+        const m = this.#metrics
+
+        renderer.drawSprite('stat-background', g.x, g.y, g.bgScale, -Math.PI / 2)
+
+        ctx.font = g.fontStr
+        const checkWidth = ctx.measureText('FREE SPINS: ').width
+        if (m.lastFont !== g.fontStr || m.fsLabelW !== checkWidth) {
+            m.fsLabelW = checkWidth
+            m.betLabelW = ctx.measureText('BET: ').width
+            m.balLabelW = ctx.measureText('€: ').width
+            m.lastFont = g.fontStr
+        }
+
         ctx.textBaseline = 'top'
-
         const labelColor = '#FFD700'
         const valueColor = '#FFFFFF'
 
-        const spacing = (window.innerWidth * 1.2) / 3
-
         ctx.textAlign = 'left'
-        const fsLabel = 'FREE SPINS: '
-        const fsValue = `${this.#model?.freeSpins}`
-        const fsX = x - spacing
-
         ctx.fillStyle = labelColor
-        ctx.fillText(fsLabel, fsX, y)
-        const fsLabelWidth = ctx.measureText(fsLabel).width
+        ctx.fillText('FREE SPINS: ', g.fsX, g.y)
         ctx.fillStyle = valueColor
-        ctx.fillText(fsValue, fsX + fsLabelWidth, y)
+        const fsVal = `${model.freeSpins}`
+        ctx.fillText(fsVal, g.fsX + m.fsLabelW, g.y)
 
-        const endOfLeft = fsX + fsLabelWidth + ctx.measureText(fsValue).width
+        const fsValueWidth = ctx.measureText(fsVal).width
+        const endOfLeft = g.fsX + m.fsLabelW + fsValueWidth
 
         ctx.textAlign = 'right'
-        const betLabel = 'BET: '
-        const betValue = `${this.#model?.bet}€`
-        const betX = x + spacing
-
         ctx.fillStyle = valueColor
-        ctx.fillText(betValue, betX, y)
+        const betValue = `${model.bet}€`
+        ctx.fillText(betValue, g.betX, g.y)
         const betValueWidth = ctx.measureText(betValue).width
         ctx.fillStyle = labelColor
-        ctx.fillText(betLabel, betX - betValueWidth, y)
+        ctx.fillText('BET: ', g.betX - betValueWidth, g.y)
 
-        const startOfRight = betX - betValueWidth - ctx.measureText(betLabel).width
+        const startOfRight = g.betX - betValueWidth - m.betLabelW
+
         const midPointX = endOfLeft + (startOfRight - endOfLeft) / 2
 
-        const balLabel = '€: '
-        const balValue = `${this.#model?.win}€`
-        const totalBalWidth = ctx.measureText(balLabel + balValue).width
-
+        const balValue = `${model.win}€`
+        const totalBalWidth = m.balLabelW + ctx.measureText(balValue).width
         const currentBalX = midPointX - totalBalWidth / 2
 
         ctx.textAlign = 'left'
         ctx.fillStyle = labelColor
-        ctx.fillText(balLabel, currentBalX, y)
+        ctx.fillText('€: ', currentBalX, g.y)
         ctx.fillStyle = valueColor
-        ctx.fillText(balValue, currentBalX + ctx.measureText(balLabel).width, y)
+        ctx.fillText(balValue, currentBalX + m.balLabelW, g.y)
     }
 
-    update(_dt: number): void {}
+    update(_dt: number) {
+        if (this.#geo.x === 0) this.updatePosition()
+    }
 
-    destroy(): void {
+    destroy() {
         this.#renderer = null
         this.#model = null
     }

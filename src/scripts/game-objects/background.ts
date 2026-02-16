@@ -14,6 +14,8 @@ export class Background implements GameObject {
 
     update() {}
 
+    updatePosition() {}
+
     destroy() {
         this.#renderer = null
     }

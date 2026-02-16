@@ -1,30 +1,35 @@
+import { ASSET_MAP, ASSETS_AUDIO } from '../config/assets'
 import { Renderer } from '../core/renderer'
-import { ASSET_MAP } from '../config/asset-map'
 import { GameSymbol } from './symbol'
 import { GAME_STATE, type GameObject } from '../types'
 import { GAME_CONFIG } from '../config/config'
 import type { GameModel } from '../core/game-model'
+import type { AudioManager } from '../core/audio'
 
 export class Reels implements GameObject {
     #renderer: Renderer | null
     #model: GameModel | null
+    #audioManager: AudioManager | null
     #symbols: GameSymbol[] = []
     #columns: GameSymbol[][] = []
     #timeouts: number[] = []
     #isSpinning = false
-    #winningPositions: { x: number; y: number }[] = []
+    #winningPositions: { x: number; y: number; scale: number; rotation: number }[] = []
     #showCombo = false
     #activeScenarioIndex = 0
     #isWaitingForLanded = false
 
-    constructor(renderer: Renderer, model: GameModel) {
+    constructor(renderer: Renderer, model: GameModel, audioManager: AudioManager) {
         this.#renderer = renderer
         this.#model = model
+        this.#audioManager = audioManager
     }
 
-    init() {
+    updatePosition() {
         const renderer = this.#renderer
         if (!renderer || !this.#model) return
+
+        this.#symbols.forEach((s) => s.destroy())
 
         const { colWidth, symbolSize, reelsStartX, reelsStartY } = renderer.layout
 
@@ -41,20 +46,7 @@ export class Reels implements GameObject {
             column.forEach((symbolName, rowIndex) => {
                 const targetY = reelsStartY + rowIndex * symbolSize + symbolSize / 2
 
-                const spriteData = ASSET_MAP[symbolName]
-                const sourceW = spriteData.rotated ? spriteData.h : spriteData.w
-                const scale = (symbolSize / sourceW) * 0.8
-                const rotation = spriteData.rotated ? -Math.PI / 2 : 0
-
-                const symbol = new GameSymbol(
-                    renderer,
-                    symbolName,
-                    centerX,
-                    targetY,
-                    targetY,
-                    scale,
-                    rotation
-                )
+                const symbol = new GameSymbol(renderer, symbolName, centerX, targetY, symbolSize)
 
                 this.#symbols.push(symbol)
                 this.#columns[colIndex].push(symbol)
@@ -65,11 +57,10 @@ export class Reels implements GameObject {
     draw() {
         if (!this.#renderer || !this.#renderer.ctx) return
 
-        const { reels, symbolSize } = this.#renderer.layout
+        const { reels } = this.#renderer.layout
         const ctx = this.#renderer.ctx
 
         ctx.save()
-
         ctx.beginPath()
 
         const offsetX = reels.w * 0.02
@@ -89,19 +80,14 @@ export class Reels implements GameObject {
 
         if (this.#showCombo) {
             this.#winningPositions.forEach((pos) => {
-                const borderData = ASSET_MAP['combo-border']
-                const sourceW = borderData.rotated ? borderData.h : borderData.w
-                const borderScale = (symbolSize / sourceW) * 1.4
-                const rotation = borderData.rotated ? -Math.PI / 2 : 0
-
-                this.#renderer?.drawSprite('combo-border', pos.x, pos.y, borderScale, rotation)
+                this.#renderer?.drawSprite('combo-border', pos.x, pos.y, pos.scale, pos.rotation)
             })
         }
 
         ctx.restore()
     }
 
-    update(dt: number): void {
+    update(dt: number) {
         this.#symbols.forEach((s) => s.update(dt))
 
         if (
@@ -119,6 +105,11 @@ export class Reels implements GameObject {
         }
     }
 
+    #clearTimeouts() {
+        this.#timeouts.forEach((t) => clearTimeout(t))
+        this.#timeouts = []
+    }
+
     #checkWin() {
         const model = this.#model
         const renderer = this.#renderer
@@ -132,60 +123,60 @@ export class Reels implements GameObject {
             return
         }
 
-        model.state = GAME_STATE.WIN
         this.#showCombo = true
-
-        if (scenario.win) {
-            model.addWin(scenario.win)
-        }
+        this.#audioManager?.playSound(ASSETS_AUDIO.COMBO)
 
         const { colWidth, symbolSize, reelsStartX, reelsStartY } = renderer.layout
+        const borderData = ASSET_MAP['combo-border']
+        const borderScale = (symbolSize / (borderData.rotated ? borderData.h : borderData.w)) * 1.4
+        const rotation = borderData.rotated ? -Math.PI / 2 : 0
 
         this.#winningPositions = scenario.winCombo.flatMap((column) =>
             column.map(([col, row]) => ({
                 x: reelsStartX + col * colWidth + colWidth / 2,
                 y: reelsStartY + row * symbolSize + symbolSize / 2,
+                scale: borderScale,
+                rotation: rotation,
             }))
         )
 
-        window.setTimeout(() => {
-            if (model.currentSpinIndex === 3) {
-                model.state = GAME_STATE.END
-                return
-            }
+        this.#clearTimeouts()
 
-            this.#showCombo = false
-            this.#winningPositions = []
-            model.state = GAME_STATE.IDLE
-        }, 2500)
-    }
+        const t1 = window.setTimeout(() => {
+            model.state = GAME_STATE.WIN
+            if (scenario.win) model.addWin(scenario.win)
 
-    destroy(): void {
-        this.#timeouts.forEach((t) => clearTimeout(t))
-        this.#timeouts = []
+            const t2 = window.setTimeout(() => {
+                if (model.currentSpinIndex === GAME_CONFIG.SPIN_SCENARIOS.length - 1) {
+                    model.state = GAME_STATE.END
+                    return
+                }
 
-        this.#symbols.forEach((s) => s.destroy())
+                this.#showCombo = false
+                this.#winningPositions = []
+                model.state = GAME_STATE.IDLE
+            }, 2500)
 
-        this.#symbols = []
-        this.#columns = []
+            this.#timeouts.push(t2)
+        }, 1000)
 
-        this.#renderer = null
-        this.#model = null
+        this.#timeouts.push(t1)
     }
 
     startSpin() {
         if (!this.#renderer || !this.#model) return
 
+        this.#clearTimeouts()
+        this.#showCombo = false
         this.#isSpinning = true
         this.#isWaitingForLanded = false
-
-        this.#model.nextSpin()
-
         this.#activeScenarioIndex = this.#model.currentSpinIndex
 
+        this.#audioManager?.playSound(ASSETS_AUDIO.SPIN)
+
         const { reels, symbolSize } = this.#renderer.layout
-        const colDelay = 150
-        const rowDelay = 70
+        const colDelay = 220
+        const rowDelay = 90
 
         const currentScenario = GAME_CONFIG.SPIN_SCENARIOS[this.#activeScenarioIndex]
 
@@ -200,15 +191,9 @@ export class Reels implements GameObject {
                 const t2 = window.setTimeout(() => {
                     const offset = (column.length - rowIndex) * symbolSize
                     const spawnY = reels.y - offset
-
                     const nextName = currentScenario.grid[colIndex][rowIndex]
 
-                    const spriteData = ASSET_MAP[nextName]
-                    const sourceW = spriteData.rotated ? spriteData.h : spriteData.w
-                    const nextScale = (symbolSize / sourceW) * 0.8
-                    const nextRotation = spriteData.rotated ? -Math.PI / 2 : 0
-
-                    symbol.startDrop(spawnY, nextName, nextScale, nextRotation)
+                    symbol.startDrop(spawnY, nextName)
 
                     if (colIndex === 5 && rowIndex === 4) {
                         this.#isWaitingForLanded = true
@@ -218,5 +203,17 @@ export class Reels implements GameObject {
                 this.#timeouts.push(t1, t2)
             })
         })
+    }
+
+    destroy() {
+        this.#clearTimeouts()
+        this.#symbols.forEach((s) => s.destroy())
+
+        this.#symbols = []
+        this.#columns = []
+
+        this.#renderer = null
+        this.#model = null
+        this.#audioManager = null
     }
 }

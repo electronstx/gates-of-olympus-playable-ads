@@ -8,7 +8,6 @@ import { Button } from './game-objects/button'
 import { Scene } from './core/scene'
 import { ReelsBg } from './game-objects/reels-bg'
 import { Background } from './game-objects/background'
-import { EventEmitter } from './core/event-emitter'
 import { StatPanel } from './game-objects/stat-panel'
 import { GameModel } from './core/game-model'
 import { WinPopup } from './game-objects/win-popup'
@@ -18,7 +17,6 @@ export class Game {
     #model: GameModel
     #renderer: Renderer
     #audioManager: AudioManager
-    #eventEmitter: EventEmitter
     #ticker: Ticker
 
     #reels: Reels
@@ -27,17 +25,17 @@ export class Game {
     #winPopup: WinPopup
 
     #isGameStarted = false
+    #canvasRect: DOMRect | null = null
 
     constructor() {
-        this.#eventEmitter = new EventEmitter()
         this.#renderer = new Renderer()
         this.#audioManager = new AudioManager()
-        this.#model = new GameModel(this.#eventEmitter)
+        this.#model = new GameModel()
         this.#scene = new Scene()
-        this.#reels = new Reels(this.#renderer, this.#model)
+        this.#reels = new Reels(this.#renderer, this.#model, this.#audioManager)
         this.#statPanel = new StatPanel(this.#renderer, this.#model)
-        this.#button = new Button(this.#renderer, this.#eventEmitter, this.#model.state)
-        this.#winPopup = new WinPopup(this.#renderer, this.#model)
+        this.#button = new Button(this.#renderer, this.#model)
+        this.#winPopup = new WinPopup(this.#renderer, this.#model, this.#audioManager)
 
         this.#ticker = new Ticker((dt) => this.#update(dt))
 
@@ -45,8 +43,13 @@ export class Game {
     }
 
     async #init() {
-        await document.fonts.load('900 90px Montserrat')
-        await document.fonts.ready
+        const assets = [
+            document.fonts.load('900 90px Montserrat'),
+            this.#renderer.init(),
+            this.#audioManager.init(),
+        ]
+
+        await Promise.all(assets)
 
         this.#scene
             .add(new Background(this.#renderer))
@@ -58,20 +61,27 @@ export class Game {
             .add(this.#button)
             .add(this.#winPopup)
 
-        this.#reels.init()
+        this.#scene.updatePositions()
+        this.#button.init()
+        this.#updateCanvasCache()
 
-        window.addEventListener('resize', () => this.#handleResize())
-        this.#renderer.canvas?.addEventListener('click', (e) => this.#handleClick(e))
+        window.addEventListener('resize', this.#handleResize)
+        this.#renderer.canvas?.addEventListener('click', this.#handleClick)
 
         this.#ticker.start()
     }
 
-    #handleClick(e: MouseEvent) {
+    #updateCanvasCache() {
         if (!this.#renderer.canvas) return
 
-        const rect = this.#renderer.canvas.getBoundingClientRect()
-        const clickX = e.clientX - rect.left
-        const clickY = e.clientY - rect.top
+        this.#canvasRect = this.#renderer.canvas.getBoundingClientRect()
+    }
+
+    #handleClick = (e: MouseEvent) => {
+        if (!this.#canvasRect) return
+
+        const clickX = e.clientX - this.#canvasRect.left
+        const clickY = e.clientY - this.#canvasRect.top
 
         this.#handleFirstClick()
 
@@ -95,23 +105,35 @@ export class Game {
     }
 
     #redirectToStore() {
-        console.log('Redirecting to Store...')
-        if (typeof (window as any).fbPlayableAd !== 'undefined') {
-            ;(window as any).fbPlayableAd.onCTAClick()
+        if (typeof (window as any).FbPlayableAd !== 'undefined') {
+            ;(window as any).FbPlayableAd.onCTAClick()
         } else {
-            window.open('', '_blank')
+            console.log('Action: onCTAClick (Store Redirect)')
         }
     }
 
-    #handleResize() {
-        this.#reels.init()
-        this.#button.updatePosition()
+    #handleResize = () => {
+        this.#renderer.handleResize()
+        this.#updateCanvasCache()
+        this.#scene.updatePositions()
     }
 
     #update(dt: number) {
         this.#renderer.clear()
-
         this.#scene.update(dt)
         this.#scene.draw()
+    }
+
+    destroy() {
+        this.#ticker.stop()
+        window.removeEventListener('resize', this.#handleResize)
+        this.#renderer.canvas?.removeEventListener('click', this.#handleClick)
+
+        this.#scene.destroy()
+        this.#renderer.destroy()
+        this.#audioManager.destroy()
+        this.#ticker.destroy()
+
+        this.#canvasRect = null
     }
 }

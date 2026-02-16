@@ -1,18 +1,14 @@
 import { GAME_CONFIG } from '../config/config'
-import { EventEmitter } from './event-emitter'
 import { GAME_STATE, type GameState } from '../types'
 
 export class GameModel {
-    #eventEmitter: EventEmitter | null
-
     #freeSpins: number
     #bet: number
     #win: number = 0
     #state: GameState = GAME_STATE.START
     #currentSpinIndex: number = 0
 
-    constructor(eventEmitter: EventEmitter) {
-        this.#eventEmitter = eventEmitter
+    constructor() {
         this.#freeSpins = GAME_CONFIG.FREE_SPINS
         this.#bet = GAME_CONFIG.BET
     }
@@ -41,48 +37,30 @@ export class GameModel {
         if (this.#state === state) return
 
         this.#state = state
-        this.#eventEmitter?.emit('STATE_CHANGE', state)
-        console.log(`State changed on ${this.#state}`)
-    }
-
-    nextSpin(): boolean {
-        if (this.#currentSpinIndex < GAME_CONFIG.SPIN_SCENARIOS.length - 1) {
-            this.#currentSpinIndex++
-            return true
-        }
-        return false
     }
 
     spin(): boolean {
-        if (this.#state !== GAME_STATE.IDLE && this.#state !== GAME_STATE.START) {
-            return false
-        }
+        const canSpin = this.#state === GAME_STATE.IDLE || this.#state === GAME_STATE.START
+        const hasSpins = this.#freeSpins > 0
+        const hasScenarios = this.#currentSpinIndex < GAME_CONFIG.SPIN_SCENARIOS.length - 1
 
-        if (this.#freeSpins > 0) {
+        if (canSpin && hasSpins && hasScenarios) {
             this.#freeSpins -= 1
-
-            this.state = GAME_STATE.SPIN
-
-            this.#eventEmitter?.emit('DATA_UPDATED')
-
+            this.#currentSpinIndex++
+            this.#state = GAME_STATE.SPIN
             return true
         }
 
         return false
     }
 
-    stopSpin(): void {
-        this.state = GAME_STATE.IDLE
+    stopSpin() {
+        this.#state = GAME_STATE.IDLE
     }
 
     addWin(amount: number) {
         if (amount <= 0) return
 
         this.#win += amount
-        this.#eventEmitter?.emit('DATA_UPDATED')
-    }
-
-    destroy() {
-        this.#eventEmitter = null
     }
 }

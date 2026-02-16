@@ -1,4 +1,9 @@
 import type { SpriteData } from '../types'
+import musicUrl from '../../assets/audio/background.mp3'
+import bigwinUrl from '../../assets/audio/big-win.mp3'
+import comboUrl from '../../assets/audio/combo.mp3'
+import spinUrl from '../../assets/audio/spin.mp3'
+import winUrl from '../../assets/audio/win.mp3'
 
 export const ASSET_MAP: Record<string, SpriteData> = {
     'text-background': { x: 2, y: 2, w: 1151, h: 656 },
@@ -25,3 +30,11 @@ export const ASSET_MAP: Record<string, SpriteData> = {
     'sapphire': { x: 1848, y: 1822, w: 187, h: 206 },
     'banknote': { x: 1143, y: 1822, w: 291, h: 154, rotated: true },
 }
+
+export const ASSETS_AUDIO = {
+    BG: musicUrl,
+    BIG_WIN: bigwinUrl,
+    WIN: winUrl,
+    COMBO: comboUrl,
+    SPIN: spinUrl,
+} as const

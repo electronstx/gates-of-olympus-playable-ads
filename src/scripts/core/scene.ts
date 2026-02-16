@@ -16,6 +16,10 @@ export class Scene {
         this.#gameObjects.forEach((gameObject) => gameObject.update(dt))
     }
 
+    updatePositions() {
+        this.#gameObjects.forEach((gameObject) => gameObject.updatePosition())
+    }
+
     destroy() {
         this.#gameObjects.forEach((gameObject) => gameObject.destroy())
         this.#gameObjects = []
